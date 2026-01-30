@@ -1,6 +1,6 @@
 # NVIDIA NeMo-Guardrails Quickstart
 
-In this quickstart, we'll try out four different deployment modes of the NeMo-Guardrail operator, showing:
+In this quickstart, we'll try out four different deployment modes of the NeMo-Guardrails server, showing:
 * Basic guardrailing of toxic language, personally identifiable information, and prompt injection.
 * Tool guardrailing
 * Dynamic, request time guardrail definition
@@ -214,12 +214,12 @@ curl -ks -X POST $NEMO_GUARDRAILS_ROUTE/v1/guardrail/checks \
 
 
 ## Tool Input Guardrailing
-In the `nemoguardrails_sample.yaml`, we've also specified some `tool_input` flows, which will let us can perform tool guardrailing.
+In the `nemoguardrails_sample.yaml`, we've also specified some `tool_input` flows, which will let us perform tool guardrailing.
 Somewhat confusingly, NeMo-Guardrails frames these names from the perspectives of an LLM in an agentic system, e.g.:
 
 `LLM -> tool_output -> tool -> tool_input -> LLM`
 
-This means a `tool_output` guardrail flows is a guardrail on the parameters of the tool call, while a `tool_input` guardrail flow
+This means a `tool_output` guardrail flow is a guardrail on the parameters of the tool call, while a `tool_input` guardrail flow
 looks at the outbound material from the tool. In these examples, we've set up `tool_input` flows, so we'll be checking the content produced by some example tools
 against our guardrails:
 
@@ -238,7 +238,7 @@ curl -ks -X POST $NEMO_GUARDRAILS_ROUTE/v1/guardrail/checks \
         }]
       }' | jq .status
 ```      
->#### Response:
+> #### Response:
 >```json
 > "blocked"
 >```
@@ -258,7 +258,7 @@ curl -ks -X POST $NEMO_GUARDRAILS_ROUTE/v1/guardrail/checks \
         }]
       }' | jq .status
 ```      
->#### Response:
+> #### Response:
 >```json
 > "blocked"
 > ```
@@ -278,7 +278,7 @@ curl -ks -X POST $NEMO_GUARDRAILS_ROUTE/v1/guardrail/checks \
         }]
       }' | jq .status
 ```      
->#### Response:
+> #### Response:
 >```json
 > "success"
 > ```
@@ -323,7 +323,7 @@ curl -ks -X POST $NEMO_GUARDRAILS_ROUTE/v1/guardrail/checks \
         }]
       }' | jq .messages
 ```      
->#### Response:
+> #### Response:
 >```json
 > "messages": [
 >  {
@@ -434,7 +434,7 @@ oc wait --for=condition=ready pod -l app=example-per-tool-nemoguardrails -n trus
 ```
 
 Here, let's imagine we have three tools in our agentic system:
-- `tool_needs_pii_checs`
+- `tool_needs_pii_checks`
 - `tool_needs_hap_checks`
 - `tool_needs_prompt_injection_checks`
 
@@ -457,7 +457,7 @@ curl -ks -X POST $NEMO_GUARDRAILS_ROUTE/v1/guardrail/checks \
         }]
       }' | jq .status
 ```      
->#### Response:
+> #### Response:
 >```json
 > "blocked"
 >```
@@ -478,7 +478,7 @@ curl -ks -X POST $NEMO_GUARDRAILS_ROUTE/v1/guardrail/checks \
         }]
       }' | jq .status
 ```      
->#### Response:
+> #### Response:
 >```json
 > "success"
 >```
@@ -498,7 +498,7 @@ curl -ks -X POST $NEMO_GUARDRAILS_ROUTE/v1/guardrail/checks \
         }]
       }' | jq .status
 ```      
->#### Response:
+> #### Response:
 >```json
 > "blocked"
 >```
