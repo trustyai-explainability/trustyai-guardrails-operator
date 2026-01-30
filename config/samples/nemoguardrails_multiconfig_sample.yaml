@@ -1,0 +1,116 @@
+---
+# First, create a ConfigMap with your NeMo Guardrails configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: example-nemo-cm-pii
+data:
+  config.yaml: |
+    rails:
+      config:
+        sensitive_data_detection:
+          input:
+            entities: 
+              - PERSON
+              - EMAIL_ADDRESS
+              - PHONE_NUMBER
+              - CREDIT_CARD
+              - US_SSN
+              - IBAN_CODE
+      input:
+        flows:
+          - detect sensitive data on input
+      tool_input: # these are guardrails on data coming *out* of a tool that will be LLM *input*, hence the confusing "tool_input" name
+        flows:
+          - detect sensitive data on tool input
+  rails.co: |
+    define flow detect sensitive data on tool input
+      """Check if the tool input has any sensitive data."""
+      $has_sensitive_data = execute detect_sensitive_data(source="input", text=$tool_message)
+
+      if $has_sensitive_data
+        bot inform answer unknown
+        stop
+---
+# First, create a ConfigMap with your NeMo Guardrails configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: example-nemo-cm-hap
+data:
+  config.yaml: |
+    rails:
+      config:
+        huggingface_detector:
+          models:
+            - model_repo: "ibm-granite/granite-guardian-hap-38m"
+              blocked_classes: [1]
+              descriptor: "hate speech"
+      input:
+        flows:
+          - huggingface detector check input $hf_model="ibm-granite/granite-guardian-hap-38m"
+      tool_input: # these are guardrails on data coming *out* of a tool that will be LLM *input*, hence the confusing "tool_input" name
+        flows:
+          - huggingface detector check tool input $hf_model="ibm-granite/granite-guardian-hap-38m"
+  rails.co: |
+
+---
+# First, create a ConfigMap with your NeMo Guardrails configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: example-nemo-cm-injection
+data:
+  config.yaml: |
+    rails:
+      config:
+        huggingface_detector:
+          models:
+            - model_repo: "protectai/deberta-v3-base-prompt-injection-v2"
+              blocked_classes: ["INJECTION"]
+              descriptor: "prompt injection"
+      input:
+        flows:
+          - huggingface detector check input $hf_model="protectai/deberta-v3-base-prompt-injection-v2"
+      tool_input: # these are guardrails on data coming *out* of a tool that will be LLM *input*, hence the confusing "tool_input" name
+        flows:
+          - huggingface detector check tool input $hf_model="protectai/deberta-v3-base-prompt-injection-v2"
+  rails.co: |
+
+---
+# Then create the NemoGuardrails resource
+apiVersion: trustyai.opendatahub.io/v1alpha1
+kind: NemoGuardrails
+metadata:
+  name: example-multiconfig-nemoguardrails
+spec:
+  nemoConfigs:
+    - name: pii
+      configMaps:
+        - example-nemo-cm-pii
+      default: true
+    - name: hap
+      configMaps:
+        - example-nemo-cm-hap
+    - name: prompt-injection
+      configMaps:
+        - example-nemo-cm-injection
+
+  # Optional: Add environment variables
+  env:
+    - name: LOG_LEVEL
+      value: "INFO"
+    - name: PORT
+      value: "8000"
+
+  # Optional: Configure CA bundle for custom certificates
+  # caBundleConfig:
+  #   configMapName: custom-ca-bundle
+  #   configMapKeys:
+  #     - ca-bundle.crt
+
+---
+# Optional: Enable authentication with kube-rbac-proxy
+# Add this annotation to the NemoGuardrails resource metadata
+# annotations:
+#   security.opendatahub.io/enable-auth: "true"
